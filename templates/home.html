@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+    <style>
+        /* --- MOBILE-FRIENDLY CSS --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: #fff;
+        }
+        header {
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            background: rgba(0,0,0,0.2);
+        }
+        .container {
+            padding: 10px;
+        }
+        .section {
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+        h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        input[type="text"], input[type="search"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: #ff6b81;
+            color: white;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        button.approve { background: #28a745; }
+        button.delete { background: #dc3545; }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        @media screen and (min-width: 600px) {
+            .container {
+                max-width: 600px;
+                margin: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>Welcome, {{ username }}</header>
+    <div class="container">
+
+        <!-- Search Groups -->
+        <div class="section">
+            <h2>Search Groups</h2>
+            <input type="search" id="search" placeholder="Search group...">
+            <ul id="search-results"></ul>
+        </div>
+
+<!-- Create Group -->
+<div class="section">
+    <h2>Create Group</h2>
+    <input type="text" id="new-group-name" placeholder="Enter group name">
+    <button onclick="createGroup()">Create</button>
+</div>
+
+<script>
+    function createGroup(){
+        const group_name = document.getElementById("new-group-name").value.trim();
+        if(!group_name){
+            alert("Please enter a group name");
+            return;
+        }
+        fetch("/create_group", {
+            method:"POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({group_name})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if(data.success){
+                alert("Group created!");
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        });
+    }
+</script>
+
+
+        <!-- Joined Groups -->
+        <div class="section">
+            <h2>Joined Groups</h2>
+            <ul>
+                {% for g in joined_groups %}
+                <li>
+                    {{ g }}
+                    <a href="{{ url_for('chat', group_name=g) }}"><button>Chat</button></a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- All Groups -->
+        <div class="section">
+            <h2>All Groups</h2>
+            <ul>
+                {% for group, info in all_groups.items() %}
+                <li>
+                    {{ group }} (Admin: {{ info.admin }})
+                    {% if username not in memberships.get(group, []) %}
+                        <button onclick="requestJoin('{{ group }}')">Join</button>
+                    {% else %}
+                        <span>Joined</span>
+                    {% endif %}
+                    {% if info.admin == username %}
+                        <button class="delete" onclick="deleteGroup('{{ group }}')">Delete</button>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Join Requests -->
+        <div class="section">
+            <h2>Join Requests</h2>
+            <ul>
+                {% for group, requests in join_requests.items() %}
+                    {% for user_req in requests %}
+                    <li>
+                        {{ user_req }} wants to join {{ group }}
+                        <a href="{{ url_for('approve', group_name=group, username=user_req) }}"><button class="approve">Approve</button></a>
+                    </li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+
+    </div>
+
+    <script>
+        // Group search
+        const searchInput = document.getElementById("search");
+        const resultsUL = document.getElementById("search-results");
+
+        searchInput.addEventListener("input", function(){
+            const query = this.value;
+            if(query.length === 0){
+                resultsUL.innerHTML = "";
+                return;
+            }
+            fetch(`/search_groups?q=${query}`)
+            .then(res => res.json())
+            .then(data => {
+                resultsUL.innerHTML = "";
+                data.forEach(g => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `${g.group_name} (Admin: ${g.admin}) <button onclick="requestJoin('${g.group_name}')">Join</button>`;
+                    resultsUL.appendChild(li);
+                });
+            });
+        });
+
+        function requestJoin(group){
+            fetch(`/request_join/${group}`, {method:"POST"})
+            .then(res=>res.json())
+            .then(data=>{
+                if(data.success) alert("Request sent!");
+                else alert(data.error);
+            });
+        }
+
+        function deleteGroup(group){
+            fetch(`/delete_group/${group}`, {method:"POST"})
+            .then(res=>res.json())
+            .then(data=>{
+                if(data.success) location.reload();
+                else alert(data.error);
+            });
+        }
+    </script>
+</body>
+</html>

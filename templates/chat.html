@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ group }} Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 15px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .sent {
+            background: #4158d0;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        .received {
+            background: #ddd;
+            color: #000;
+            align-self: flex-start;
+        }
+
+        .seen {
+            font-size: 10px;
+            color: #555;
+            position: absolute;
+            bottom: -12px;
+            right: 8px;
+        }
+
+        #online-users {
+            background: rgba(0,0,0,0.1);
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        #message-input-container {
+            display: flex;
+            padding: 10px;
+            background: #fff;
+            border-top: 1px solid #ccc;
+        }
+
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        #send-btn {
+            padding: 0 15px;
+            margin-left: 5px;
+            background: #4158d0;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>{{ group }} Chat</header>
+    <div id="online-users">Online: <span id="online-list">{{ online_users|join(', ') }}</span></div>
+    <div id="chat-container">
+        {% for msg in messages %}
+        <div class="message {% if msg.sender==username %}sent{% else %}received{% endif %}">
+            <strong>{{ msg.sender }}:</strong> {{ msg.text }}
+            {% if msg.sender == username %}
+            <div class="seen">{{ msg.seen_by|length }} seen</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <div id="message-input-container">
+        <input type="text" id="message-input" placeholder="Type a message">
+        <button id="send-btn">Send</button>
+    </div>
+
+    <script>
+        const socket = io();
+        const username = "{{ username }}";
+        const room = "{{ group }}";
+
+        // Join room
+        socket.emit("join_room", {username, room});
+
+        const chatContainer = document.getElementById("chat-container");
+        const input = document.getElementById("message-input");
+        const sendBtn = document.getElementById("send-btn");
+        const onlineList = document.getElementById("online-list");
+
+        function addMessage(sender, text, seen=false){
+            const div = document.createElement("div");
+            div.classList.add("message");
+            div.classList.add(sender===username ? "sent" : "received");
+            div.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            if(sender===username && seen){
+                const s = document.createElement("div");
+                s.classList.add("seen");
+                s.innerText = seen.length + " seen";
+                div.appendChild(s);
+            }
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Send message
+        sendBtn.addEventListener("click", ()=>{
+            const text = input.value.trim();
+            if(!text) return;
+            socket.emit("send_message", {username, room, text});
+            input.value = "";
+        });
+
+        input.addEventListener("keypress", e=>{
+            if(e.key==="Enter"){
+                sendBtn.click();
+            }
+        });
+
+        // Receive message
+        socket.on("receive_message", data=>{
+            addMessage(data.sender, data.text, data.seen_by);
+        });
+
+        // Update online users
+        socket.on("update_online", users=>{
+            onlineList.innerText = users.join(', ');
+        });
+    </script>
+</body>
+</html>

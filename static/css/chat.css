@@ -1,0 +1,74 @@
+/* clean modern chat UI - responsive */
+
+/* Reset & base */
+:root{
+  --bg:#0f1724; --card:#0b1220; --muted:#9aa6b2; --accent:#4f46e5;
+  --glass: rgba(255,255,255,0.03);
+}
+*{box-sizing:border-box}
+html,body,#app{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:#E6EEF3;background:linear-gradient(180deg,#071022 0%, #051018 100%);}
+.app{display:grid;grid-template-columns:320px 1fr 280px;gap:18px;padding:18px;height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--card);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),#06b6d4);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+.title{font-weight:700;color:#e6eef3}
+
+/* search */
+.search-wrap input{width:100%;padding:8px;border-radius:8px;border:none;background:var(--glass);color:var(--muted)}
+.section-title{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px;margin-top:6px}
+.group-list{list-style:none;padding:0;margin:0;overflow:auto;max-height:50vh}
+.group-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;margin-top:6px;background:transparent;cursor:pointer}
+.group-item:hover{background:rgba(255,255,255,0.02)}
+.group-name{font-weight:600}
+.group-meta{font-size:12px;color:var(--muted)}
+
+/* account */
+.account{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.me{display:flex;gap:10px;align-items:center}
+.avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#334155,#0ea5a9);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+.btn{background:transparent;border:1px solid rgba(255,255,255,0.05);padding:6px 10px;border-radius:8px;color:var(--muted);cursor:pointer}
+.btn.primary{background:var(--accent);color:white;border:none}
+.btn.small{padding:4px 8px;font-size:13px}
+
+/* MAIN */
+.main{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.chat-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.chat-title{font-weight:700}
+.messages-wrap{flex:1;padding:18px;overflow:auto}
+.messages{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.message{max-width:72%;padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);color:#e6eef3}
+.message.me{margin-left:auto;background:linear-gradient(90deg, #2563eb, #7c3aed);color:white}
+.meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+
+/* composer */
+.composer{display:flex;gap:10px;padding:12px;border-top:1px solid rgba(255,255,255,0.03)}
+.composer input{flex:1;padding:10px;border-radius:10px;border:none;background:rgba(255,255,255,0.02);color:var(--muted)}
+
+/* RIGHTBAR */
+.rightbar{background:var(--card);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+.member-list{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto}
+.member{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px}
+.status-dot{width:10px;height:10px;border-radius:50%}
+.status-dot.online{background:#10b981}
+.status-dot.offline{background:#6b7280}
+
+/* modal */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.6)}
+.modal.hidden{display:none}
+.modal-card{background:linear-gradient(180deg,#051018,#071022);padding:18px;border-radius:12px;min-width:320px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.badge{background:#ef4444;color:white;padding:2px 6px;border-radius:999px;font-size:12px}
+.hidden{display:none}
+
+/* responsive */
+@media (max-width: 900px){
+  .app{grid-template-columns: 1fr;grid-template-rows:auto 1fr auto;padding:10px}
+  .sidebar{order:1;display:flex;flex-direction:row;gap:8px;overflow:auto;height:72px;padding:8px;border-radius:10px}
+  .main{order:2;border-radius:10px;margin-top:8px}
+  .rightbar{order:3;display:none}
+  .group-list{display:flex;flex-direction:row;gap:8px}
+  .group-item{min-width:140px;flex:0 0 auto}
+  .messages {padding-bottom:40px}
+}
