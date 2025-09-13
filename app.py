@@ -317,5 +317,5 @@ def on_disconnect():
             users.remove(session["username"])
             emit("update_online", list(users), room=room)
 
-if __name__=="__main__":
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+if __name__ == "__main__":
+    socketio.run(app, host="0.0.0.0", port=5000)
